@@ -11,3 +11,4 @@ unzip /opt/whisper/source.zip
 cd /opt/whisper/whisper.cpp-1.4.0/
 make
 ./models/download-ggml-model.sh large
+./main -m models/ggml-large.bin -f samples/jfk.wav
