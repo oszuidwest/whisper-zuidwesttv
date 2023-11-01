@@ -2,34 +2,51 @@
 $DB_PATH = '/path/to/your/tasks.db';  // Replace with your actual path
 $SECRET_KEY = 'your-secret-key';      // Replace with your desired secret key
 
-// Check for the secret key
-if ($_GET['key'] !== $SECRET_KEY) {
-    die("Unauthorized.");
+// Check if the source and key are set in the GET parameters
+if (!isset($_GET['source'], $_GET['key'])) {
+    header('HTTP/1.1 400 Bad Request');
+    echo "Error: Missing parameters.";
+    exit;
 }
 
-$url = $_GET['source'];
+// Check for the secret key
+if ($_GET['key'] !== $SECRET_KEY) {
+    header('HTTP/1.1 401 Unauthorized');
+    echo "Unauthorized.";
+    exit;
+}
+
+$url = filter_var($_GET['source'], FILTER_SANITIZE_URL);
 
 // Parse the ID from the URL
-preg_match("#https://[a-zA-Z0-9.]+/([a-f0-9\-]+)/play_.*\.mp4#", $url, $matches);
+if (!preg_match("#https://[a-zA-Z0-9.]+/([a-f0-9\-]+)/play_.*\.mp4#", $url, $matches)) {
+    header('HTTP/1.1 400 Bad Request');
+    echo "Error: Invalid URL format.";
+    exit;
+}
+
 $id = $matches[1];
 
 // Open the SQLite database
-$db = new SQLite3($DB_PATH);
+$db = new SQLite3($DB_PATH, SQLITE3_OPEN_READWRITE);
 
 // Check if the ID is already present
-$query = $db->prepare("SELECT id FROM tasks WHERE id = :id");
+$query = $db->prepare('SELECT id FROM tasks WHERE id = :id');
 $query->bindValue(':id', $id, SQLITE3_TEXT);
-$result = $query->execute()->fetchArray();
+$result = $query->execute()->fetchArray(SQLITE3_ASSOC);
 
 if ($result) {
-    die("Error: ID already exists in the database.");
+    header('HTTP/1.1 409 Conflict');
+    echo "Error: ID already exists in the database.";
+    exit;
 }
 
 // Insert the new task into the database
-$query = $db->prepare("INSERT INTO tasks (id, url, status) VALUES (:id, :url, 'queued')");
+$query = $db->prepare('INSERT INTO tasks (id, url, status) VALUES (:id, :url, "queued")');
 $query->bindValue(':id', $id, SQLITE3_TEXT);
 $query->bindValue(':url', $url, SQLITE3_TEXT);
 $query->execute();
 
+header('HTTP/1.1 200 OK');
 echo "Task added successfully!";
 ?>
