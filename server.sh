@@ -14,3 +14,9 @@ cd /opt/whisper/whisper.cpp-master/
 make
 ./models/download-ggml-model.sh large
 ./main -m models/ggml-large.bin -f samples/jfk.wav
+
+# Clean-up webserver
+rm /var/www/html/index.html
+wget -O /var/www/html/index.php https://raw.githubusercontent.com/oszuidwest/whisper-zuidwesttv/main/index.php
+wget -O /var/www/html/worker.sh https://raw.githubusercontent.com/oszuidwest/whisper-zuidwesttv/main/worker.sh
+chown -R www-data:www-data /var/www/html
