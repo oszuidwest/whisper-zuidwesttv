@@ -38,7 +38,7 @@ while true; do
     # Update the task status to 'transcribing'
     sqlite3 $DB_PATH "UPDATE tasks SET status='transcribing' WHERE id='$id'"
 
-    # 3. Transcribe the WAV (This is a placeholder, replace with your transcription command)
+    # 3. Transcribe the WAV (This is a placeholder, replace with OpenAI's Whisper)
     TXT_PATH="${WAV_PATH%.wav}.txt"
     echo $WAV_PATH > $TXT_PATH
 
