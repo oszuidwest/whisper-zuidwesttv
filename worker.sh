@@ -1,6 +1,7 @@
 #!/bin/bash
 
-DB_PATH="/path/to/your/tasks.db"
+DB_PATH="/path/to/your/tasks.db"     # Replace with your actual path
+MEDIA_PATH="/mnt/media/"             # Configure this path as needed
 
 while true; do
     # Fetch the next 'queued' task from SQLite
@@ -19,7 +20,7 @@ while true; do
     sqlite3 $DB_PATH "UPDATE tasks SET status='downloading' WHERE id='$id'"
 
     # 1. Download the file
-    OUTPUT_PATH="/mnt/media/$id.mp4"
+    OUTPUT_PATH="$MEDIA_PATH$id.mp4"
     if ! curl -o $OUTPUT_PATH $url; then
         sqlite3 $DB_PATH "UPDATE tasks SET status='download_failed' WHERE id='$id'"
         continue
@@ -38,20 +39,20 @@ while true; do
     # Update the task status to 'transcribing'
     sqlite3 $DB_PATH "UPDATE tasks SET status='transcribing' WHERE id='$id'"
 
-    # 3. Transcribe the WAV (This is a placeholder, replace with OpenAI's Whisper)
-    TXT_PATH="${WAV_PATH%.wav}.txt"
-    echo $WAV_PATH > $TXT_PATH
-
-    # Replace the above 'echo' with your transcription method.
-    # After transcription, check if it was successful
-    if [ $? -eq 0 ]; then
-        sqlite3 $DB_PATH "UPDATE tasks SET status='completed' WHERE id='$id'"
-        
-        # Delete the MP4 and WAV files after successful transcription
-        rm $OUTPUT_PATH
-        rm $WAV_PATH
-    else
+    # 3. Transcribe the WAV using Whisper
+    TXT_PATH="$MEDIA_PATH$id.txt"
+    if ! /opt/whisper/whisper.cpp-master/main \
+            -m /opt/whisper/whisper.cpp-master/models/ggml-large.bin \
+            -f $WAV_PATH \
+            --print-colors \
+            --output-vtt \
+            --output-file $TXT_PATH; then
         sqlite3 $DB_PATH "UPDATE tasks SET status='transcribe_failed' WHERE id='$id'"
         continue
     fi
+
+    # After successful transcription, update status and delete the MP4 and WAV files
+    sqlite3 $DB_PATH "UPDATE tasks SET status='completed' WHERE id='$id'"
+    rm $OUTPUT_PATH
+    rm $WAV_PATH
 done
