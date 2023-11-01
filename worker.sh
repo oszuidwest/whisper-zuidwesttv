@@ -46,6 +46,7 @@ while true; do
             -f $WAV_PATH \
             --print-colors \
             --output-vtt \
+            --language nl \
             --output-file $TXT_PATH; then
         sqlite3 $DB_PATH "UPDATE tasks SET status='transcribe_failed' WHERE id='$id'"
         continue
