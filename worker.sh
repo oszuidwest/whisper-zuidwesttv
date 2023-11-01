@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DB_PATH="/path/to/your/tasks.db"  
+DB_PATH="/path/to/your/tasks.db"
 
 while true; do
     # Fetch the next 'queued' task from SQLite
@@ -42,16 +42,16 @@ while true; do
     TXT_PATH="${WAV_PATH%.wav}.txt"
     echo $WAV_PATH > $TXT_PATH
 
-    # Here you'll need to replace the above 'echo' command with your transcription method.
+    # Replace the above 'echo' with your transcription method.
     # After transcription, check if it was successful
     if [ $? -eq 0 ]; then
         sqlite3 $DB_PATH "UPDATE tasks SET status='completed' WHERE id='$id'"
-    
-        # If transcription was successful, delete the MP4 and WAV files
+        
+        # Delete the MP4 and WAV files after successful transcription
         rm $OUTPUT_PATH
         rm $WAV_PATH
-    
     else
         sqlite3 $DB_PATH "UPDATE tasks SET status='transcribe_failed' WHERE id='$id'"
+        continue
     fi
 done
