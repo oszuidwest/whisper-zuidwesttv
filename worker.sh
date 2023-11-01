@@ -31,7 +31,7 @@ while true; do
 
     # 2. Convert the MP4 to WAV
     WAV_PATH="${OUTPUT_PATH%.mp4}.wav"
-    if ! ffmpeg -i $OUTPUT_PATH -ar 16000 -ac 1 -c:a pcm_s16le $WAV_PATH; then
+    if ! ffmpeg -y -i $OUTPUT_PATH -ar 16000 -ac 1 -c:a pcm_s16le $WAV_PATH; then
         sqlite3 $DB_PATH "UPDATE tasks SET status='convert_failed' WHERE id='$id'"
         continue
     fi
