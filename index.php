@@ -28,7 +28,16 @@ if (!preg_match("#https://[a-zA-Z0-9.]+/([a-f0-9\-]+)/play_.*\.mp4#", $url, $mat
 $id = $matches[1];
 
 // Open the SQLite database
-$db = new SQLite3($DB_PATH, SQLITE3_OPEN_READWRITE);
+$db = new SQLite3($DB_PATH, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE);
+
+// Create the tasks table if it doesn't exist
+$db->exec('
+    CREATE TABLE IF NOT EXISTS tasks (
+        id TEXT PRIMARY KEY,
+        url TEXT NOT NULL,
+        status TEXT NOT NULL
+    )
+');
 
 // Check if the ID is already present
 $query = $db->prepare('SELECT id FROM tasks WHERE id = :id');
