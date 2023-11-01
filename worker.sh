@@ -9,6 +9,7 @@ while true; do
 
     # Check if there's a task to process
     if [ -z "$task" ]; then
+        echo "No task in queue."
         sleep 10
         continue
     fi
